@@ -34,11 +34,11 @@ steps:
   displayName: 'Publish symbols path'
   inputs:
     SearchPattern: '**\bin\**\*.pdb'
-    PublishSymbols: false
+    PublishSymbols: true
   continueOnError: true
 
 - task: CopyFiles@2
-  displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
+  displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)'
     Contents: '**\bin\$(BuildConfiguration)\**'

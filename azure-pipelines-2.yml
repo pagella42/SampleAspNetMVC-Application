@@ -1,0 +1,46 @@
+trigger:
+- master
+pool:
+  name: Azure Pipelines
+  demands:
+  - msbuild
+  - visualstudio
+  - vstest
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  
+stages:
+- stage: __default
+  jobs:
+  - job: Job
+
+    steps:
+    - task: NuGetToolInstaller@1
+      displayName: Use NuGet
+    - task: NuGetCommand@2
+      displayName: NuGet restore
+      inputs:
+        restoreSolution: $(Parameters.solution)
+    - task: VSBuild@1
+      inputs:
+        solution: '$(solution)'
+        msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
+        platform: '$(buildPlatform)'
+        configuration: '$(buildConfiguration)'
+    - task: PublishSymbols@2
+      displayName: Publish symbols path
+      inputs:
+        SearchPattern: '**\bin\**\*.pdb'
+        PublishSymbols: false
+      continueOnError: true
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact: drop'
+    - task: AzureRmWebAppDeployment@4
+      displayName: 'Azure App Service Deploy: SampleAspNetMVCApplication'
+      inputs:
+        azureSubscription: j-rebagliatti (24cbed71-3c19-48a1-9678-631a9a437703)
+        WebAppName: SampleAspNetMVCApplication
+        packageForLinux: $(Build.ArtifactStagingDirectory)/**/SampleAspNetMVCApplication.zip
+
